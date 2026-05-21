@@ -1,170 +1,133 @@
-# 📈 PEA Tracker — Guide de démarrage
+# Trackfolio — Guide d'intégration
 
-## Stack
-- **Frontend** : Next.js 14 (App Router) + Tailwind CSS
-- **Auth + BDD** : Firebase (Firestore + Authentication)
-- **Cours boursiers** : Finnhub API (gratuit)
-- **Hosting** : Vercel (gratuit)
-- **Android** : PWA installable (Add to Home Screen)
+## Structure des fichiers à copier
 
----
+```
+app/
+  dashboard/
+    page.tsx          ← Page d'accueil / portefeuille
+    layout.tsx        ← Layout avec BottomNav
+  market/
+    page.tsx          ← Écran marché avec indices + filtres
+  search/
+    page.tsx          ← Recherche avec suggestions
+  stock/
+    [ticker]/
+      page.tsx        ← Détail action + graphique + Acheter/Vendre
+  globals.css         ← CSS global (remplace le tien)
 
-## 1. Prérequis
+components/
+  charts/
+    PriceChart.tsx    ← Graphique Chart.js réutilisable
+  modals/
+    TradeModal.tsx    ← Modal Acheter / Vendre
+  ui/
+    BottomNav.tsx     ← Navigation bas d'écran
+    StockRow.tsx      ← Ligne action réutilisable
 
-- Node.js ≥ 18
-- Compte Firebase (gratuit) → https://console.firebase.google.com
-- Compte Finnhub (gratuit) → https://finnhub.io
-- Compte Vercel (gratuit) → https://vercel.com
+hooks/
+  useMarketData.ts    ← Prix temps réel (Finnhub WebSocket + CoinGecko)
+  usePortfolio.ts     ← Gestion portefeuille (localStorage)
 
----
+lib/
+  constants.ts        ← Données statiques des actions
 
-## 2. Firebase — Configuration
-
-### 2a. Créer le projet
-1. https://console.firebase.google.com → Nouveau projet
-2. Désactiver Google Analytics (optionnel)
-
-### 2b. Activer Authentication
-- Build → Authentication → Get started
-- Sign-in method → **Email/Password** → Activer
-
-### 2c. Activer Firestore
-- Build → Firestore Database → Create database
-- **Production mode** (les rules dans ce projet sécurisent l'accès)
-- Région : `eur3` (Europe)
-
-### 2d. Appliquer les règles de sécurité
-- Firestore → Rules → Copier le contenu de `firestore.rules` → Publish
-
-### 2e. Récupérer les clés Firebase
-- Paramètres du projet (⚙️) → General → Your apps → Add app → Web
-- Copier les valeurs dans `.env.local`
+types/
+  index.ts            ← Types TypeScript
+```
 
 ---
 
-## 3. Finnhub — Clé API
+## Installation
 
-1. https://finnhub.io → Register (gratuit)
-2. Dashboard → API Keys → copier la clé
-3. Coller dans `.env.local` : `NEXT_PUBLIC_FINNHUB_KEY=...`
+### 1. Copier les fichiers
+Copie tous les fichiers ci-dessus dans ton projet Next.js existant, en respectant la structure.
 
-**Limite gratuite** : 60 appels/min (largement suffisant)
-
-**Symboles français (PEA)** :
-| Action | Symbole Finnhub |
-|--------|----------------|
-| TotalEnergies | TTE.PA |
-| LVMH | MC.PA |
-| Airbus | AIR.PA |
-| BNP Paribas | BNP.PA |
-| Sanofi | SAN.PA |
-| Stellantis | STLAM.MI |
-
----
-
-## 4. Installation locale
-
+### 2. Installer les dépendances
 ```bash
-# Copier les variables d'environnement
-cp .env.local.example .env.local
-# Remplir les valeurs dans .env.local
-
-# Installer les dépendances
-npm install
-
-# Lancer en développement
-npm run dev
-# → http://localhost:3000
+npm install chart.js
 ```
 
----
-
-## 5. Icônes PWA (obligatoire pour Android)
-
-Créez deux icônes :
-- `public/icons/icon-192.png` (192×192 px)
-- `public/icons/icon-512.png` (512×512 px)
-
-Outil gratuit : https://realfavicongenerator.net
-
----
-
-## 6. Déploiement Vercel
-
+### 3. Clé API Finnhub (cours en temps réel)
 ```bash
-# Option A : via CLI
-npm i -g vercel
-vercel --prod
-
-# Option B : via GitHub
-# 1. Push le projet sur GitHub
-# 2. vercel.com → Import → sélectionner le repo
-# 3. Ajouter les variables d'env dans Vercel Dashboard → Settings → Environment Variables
+# 1. Va sur https://finnhub.io → Sign up (gratuit)
+# 2. Copie ta clé API
+# 3. Crée .env.local à la racine :
+echo "NEXT_PUBLIC_FINNHUB_KEY=ta_cle_ici" >> .env.local
 ```
 
-**Variables à ajouter dans Vercel** :
-- `NEXT_PUBLIC_FB_API_KEY`
-- `NEXT_PUBLIC_FB_AUTH_DOMAIN`
-- `NEXT_PUBLIC_FB_PROJECT_ID`
-- `NEXT_PUBLIC_FB_STORAGE_BUCKET`
-- `NEXT_PUBLIC_FB_SENDER_ID`
-- `NEXT_PUBLIC_FB_APP_ID`
-- `NEXT_PUBLIC_FINNHUB_KEY`
+> **Sans clé Finnhub** : l'app fonctionne en mode démo avec des prix simulés réalistes.
+
+### 4. Vérifier Tailwind v4
+Assure-toi que `globals.css` commence par `@import "tailwindcss"` (pas `@tailwind base` qui est v3).
 
 ---
 
-## 7. Installation Android (PWA)
+## Fonctionnalités
 
-1. Ouvrir l'URL Vercel dans **Chrome Android**
-2. Menu ⋮ → **Ajouter à l'écran d'accueil**
-3. L'app s'installe comme une vraie appli native
+| Feature | Status |
+|---|---|
+| Dashboard portefeuille | ✅ |
+| Prix en temps réel (WebSocket) | ✅ Finnhub |
+| Crypto temps réel | ✅ CoinGecko 30s |
+| Page détail + graphique | ✅ |
+| Acheter / Vendre | ✅ Fonctionnel |
+| Portefeuille persistant | ✅ localStorage |
+| Recherche | ✅ |
+| Page marché + filtres | ✅ |
+| Mode démo sans clé API | ✅ |
+| Thème dark | ✅ |
 
 ---
 
-## 8. Structure du projet
+## Ajouter de nouvelles actions
 
+Dans `lib/constants.ts`, ajouter une entrée dans `STOCK_UNIVERSE` :
+
+```ts
+{
+  ticker: 'GOOG',
+  name: 'Alphabet Inc.',
+  marketCap: '$2,17T',
+  pe: '24,8',
+  high52: 193.31,
+  low52: 130.67,
+  category: 'actions',
+  color: '#4285f4',
+  about: 'Description...',
+}
 ```
-pea-tracker/
-├── app/
-│   ├── page.js              # Login / Inscription
-│   ├── dashboard/page.js    # Accueil — liste des portefeuilles
-│   ├── portfolio/[id]/page.js  # Positions + transactions + graphique
-│   └── alerts/page.js       # Alertes de cours
-├── components/
-│   └── Navbar.js            # Navigation haut + bas
-├── lib/
-│   ├── firebase.js          # Init Firebase
-│   ├── AuthContext.js       # Hook useAuth()
-│   ├── firestore.js         # CRUD Firestore
-│   └── stockApi.js          # Finnhub API + formatters
-└── public/
-    ├── manifest.json        # Config PWA
-    └── sw.js                # Service Worker offline
+
+Pour les cryptos, ajouter dans `CRYPTO_IDS` et `CRYPTO_META` :
+```ts
+// CRYPTO_IDS
+SOL: 'solana',
+
+// CRYPTO_META
+{ ticker: 'SOL', name: 'Solana', color: '#9945ff', category: 'crypto', about: '...' }
 ```
 
 ---
 
-## 9. Fonctionnalités incluses
+## Synchroniser le portefeuille avec Firebase
 
-- ✅ Inscription / Connexion email + mot de passe
-- ✅ Plusieurs portefeuilles (PEA, CTO, PEA-PME...)
-- ✅ Recherche d'actions (françaises + internationales)
-- ✅ Achat / Vente avec calcul prix moyen
-- ✅ Prix en temps réel (refresh 30s)
-- ✅ P&L par position et global
-- ✅ Historique des transactions
-- ✅ Graphique 30 jours par action
-- ✅ Alertes de cours (avec notification navigateur)
-- ✅ PWA installable Android
-- ✅ Mode offline (cache service worker)
-- ✅ Données 100% séparées par compte
+Remplace dans `hooks/usePortfolio.ts` les fonctions `loadPortfolio` / `savePortfolio` :
 
----
+```ts
+import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { auth } from '@/lib/firebase'
 
-## 10. Prochaines améliorations
+async function loadPortfolio() {
+  const uid = auth.currentUser?.uid
+  if (!uid) return DEFAULT_PORTFOLIO
+  const snap = await getDoc(doc(db, 'portfolios', uid))
+  return snap.exists() ? snap.data() as Portfolio : DEFAULT_PORTFOLIO
+}
 
-- [ ] Notifications push FCM (alertes même app fermée)
-- [ ] Dividendes
-- [ ] Import CSV courtier (Fortuneo, Boursorama...)
-- [ ] Widget home screen Android
-- [ ] Multi-devise (USD/GBP)
+async function savePortfolio(p: Portfolio) {
+  const uid = auth.currentUser?.uid
+  if (!uid) return
+  await setDoc(doc(db, 'portfolios', uid), p)
+}
+```
